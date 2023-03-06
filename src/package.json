@@ -1,0 +1,21 @@
+{
+  "version": "0.0.1",
+  "name": "rum-bt",
+  "productName": "Rum-BT",
+  "description": "Rum BT Desktop App",
+  "main": "main.js",
+  "author": "rumsystem.net",
+  "license": "MIT",
+  "dependencies": {
+    "@electron/remote": "^2.0.9",
+    "@iarna/toml": "^2.2.5",
+    "axios": "^1.3.4",
+    "date-fns": "^2.29.3",
+    "electron-dl": "^3.5.0",
+    "electron-log": "^4.4.1",
+    "electron-store": "^8.1.0",
+    "electron-updater": "^4.6.1",
+    "fastify": "^4.14.0",
+    "get-port": "^5.1.1"
+  }
+}
