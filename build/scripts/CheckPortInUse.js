@@ -1,7 +1,7 @@
 const chalk = require('chalk');
 const detectPort = require('detect-port');
 
-const port = process.env.PORT || '1212';
+const port = process.env.PORT || '1218';
 
 detectPort(port, (err, availablePort) => {
   if (port !== String(availablePort)) {

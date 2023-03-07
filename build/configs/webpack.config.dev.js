@@ -4,7 +4,7 @@ const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
 const config = require('./webpack.config.base');
 
-const port = process.env.PORT || 1212;
+const port = process.env.PORT || 1218;
 
 config.devtool('eval-source-map');
 config.mode('development');
