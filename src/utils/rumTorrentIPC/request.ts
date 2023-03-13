@@ -52,12 +52,8 @@ export const initTorrentIPC = () => {
   };
 
   const handleSummary = (_event: IpcRendererEvent, args: any) => {
-    if (args.type === 'summary') {
-      state.summary = args.data;
-    }
-    if (args.type === 'up') {
-      state.up = args.data;
-    }
+    state.up = args.up;
+    state.summary = args.summary;
   };
 
   ipcRenderer.on('rum-torrent-ipc', handle);

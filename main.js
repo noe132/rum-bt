@@ -1,4 +1,8 @@
 const path = require('path');
+const crypto = require('crypto');
+
+// electron doesn't have crypto global var
+global.crypto = crypto;
 
 require('ts-node').register({
   transpileOnly: true,
