@@ -29,68 +29,46 @@ const pushStatus = () => {
 export const actions = {
   up: async (param: { seed: string }) => {
     // TODO ignore request while up or down
-    if (state.up) { return; }
-    await torrent.init({
-      callback: (summary) => {
-        state.summary = summary;
-        pushStatus();
-      },
-    });
-    await torrent.seed(param.seed);
-    state.up = true;
-    pushStatus();
+    if (!state.up) {
+      state.up = true;
+      await torrent.init({
+        callback: (summary) => {
+          state.summary = summary;
+          pushStatus();
+        },
+      });
+      console.log('rum-torrent up');
+    }
 
-    // const rumTorrentProcess = childProcess.spawn(
-    //   // TODO:
-    //   'node',
-    //   [
-    //     join(process.cwd(), 'rum-torrent.mjs'),
-    //     '--seed',
-    //     param.seed,
-    //     '--port',
-    //     String(state.port),
-    //   ],
-    //   {
-    //     shell: !!isDarwin,
-    //     // cwd: 'C:\\src\\rum-torrent',
-    //   },
-    // );
-    // rumTorrentProcess.on('error', (err) => {
-    //   actions.down();
-    //   console.error(err);
-    // });
-    // rumTorrentProcess.on('exit', () => {
-    //   state.process = null;
-    //   console.log('rum torrent exit');
-    //   webContents.getAllWebContents().forEach((v) => {
-    //     v.send('rum-torrent-ipc-summary', {
-    //       type: 'up',
-    //       data: state.up,
-    //     });
-    //   });
-    // });
-    // rumTorrentProcess.stdout.pipe(process.stdout);
-    // rumTorrentProcess.stderr.pipe(process.stderr);
-    // state.process = rumTorrentProcess;
-    // webContents.getAllWebContents().forEach((v) => {
-    //   v.send('rum-torrent-ipc-summary', {
-    //     type: 'up',
-    //     data: state.up,
-    //   });
-    // });
-    console.log('rum torrent up');
+    await torrent.seed(param.seed);
+    console.log('add new seed');
+
+    // TODO: detect duplicate torrent
+    // // eslint-disable-next-line import/extensions
+    // const parseTorrent = await import('parse-torrent/index.js');
+    // const newTorrent = parseTorrent.default(param.seed);
+    // const client: any = torrent.getClient({});
+    // if (!client.torrents || client.torrents.some((v: any) => v.infoHash === newTorrent.infoHash)) {
+    //   try {
+    //     await torrent.seed(param.seed);
+    //     console.log('add new seed');
+    //   } catch (e) {}
+    // }
+
+    pushStatus();
   },
   down: async () => {
     // TODO ignore request while up or down
     if (!state.up) { return; }
     await torrent.end();
     state.up = false;
-    console.log('torrent down');
-    // state.process?.kill();
-    // state.process = null;
+    console.log('rum-torrent down');
     pushStatus();
-    console.log('rum torrent down');
   },
+  status: () => ({
+    up: state.up,
+    summary: state.summary,
+  }),
 };
 
 export const initRumTorrentIPC = () => {

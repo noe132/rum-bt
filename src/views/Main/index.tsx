@@ -1,30 +1,37 @@
 import React, { useRef } from 'react';
-import { action } from 'mobx';
+import { action, reaction, runInAction } from 'mobx';
 import { observer, useLocalObservable } from 'mobx-react-lite';
 import { Button, TextField } from '@mui/material';
+import { ChevronLeft } from '@mui/icons-material';
 
 import { rumTorrentIPC } from 'utils/rumTorrentIPC';
+import { torrent } from 'service';
 
+const SEED_STORAGE_KEY = 'SEED_STORAGE_KEY';
 export const MainView = observer(() => {
   const state = useLocalObservable(() => ({
-    seed: 'magnet:?xt=urn:btih:84fdd33834ef193830389a773336e097b9d67d80&dn=192.mp4&tr=http%3A%2F%2F127.0.0.1%3A8965%2Fannounce%2F3ee1703edf6efee57284cdf438b7e95cf7014df7c4f8cc37aaba8ba174773eed',
-    opened: false,
+    seed: '',
     playing: '',
-    get torrent() {
-      return rumTorrentIPC.state;
+    get up() {
+      return rumTorrentIPC.state.up;
+    },
+    get torrents() {
+      return torrent.state.summary?.torrents ?? [];
     },
     get files() {
-      return this.torrent.summary?.torrents.flatMap((v) => v.files) ?? [];
+      return this.torrents.flatMap((v) => v.files) ?? [];
     },
   }));
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const handleSeed = async () => {
-    await rumTorrentIPC.up(state.seed);
+    if (state.seed) {
+      await torrent.up(state.seed);
+    }
   };
 
   const handleDown = async () => {
-    await rumTorrentIPC.down();
+    await torrent.down();
   };
 
   const handlePlay = (url: string) => {
@@ -32,44 +39,75 @@ export const MainView = observer(() => {
   };
 
   React.useEffect(() => {
+    runInAction(() => {
+      state.seed = window.localStorage.getItem(SEED_STORAGE_KEY) ?? '';
+    });
+    const dispose = reaction(
+      () => state.seed,
+      () => {
+        window.localStorage.setItem(SEED_STORAGE_KEY, state.seed);
+      },
+    );
+    return dispose;
+  }, []);
+
+  React.useEffect(() => {
     if (videoRef.current) {
-      videoRef.current.volume = 0.1;
+      videoRef.current.volume = 0.5;
     }
   }, [state.playing]);
 
   return (
     <div className="flex flex-center flex-1 h-0 relative">
-      {!state.torrent.up && (
-        <div className="flex flex-center">
-          <TextField
-            value={state.seed}
-            onChange={action((e) => { state.seed = e.target.value; })}
-            multiline
-          />
-          <Button
-            color="primary"
-            variant="outlined"
-            onClick={handleSeed}
-          >
-            Seed
-          </Button>
-        </div>
-      )}
-
-      {!state.playing && !!state.torrent.up && (
-        <div className="flex-col flex-center gap-1">
-          <div className="flex flex-center">
+      {!state.playing && (
+        <div className="flex-col flex-center gap-4">
+          <div className="flex-col flex-center gap-4">
+            <TextField
+              className="w-80 break-all"
+              value={state.seed}
+              onChange={action((e) => { state.seed = e.target.value; })}
+              multiline
+              placeholder="Paste seed here"
+              rows={8}
+            />
             <Button
+              className="w-full"
               color="primary"
               variant="outlined"
-              onClick={handleDown}
+              onClick={handleSeed}
             >
-              Down
+              Start / Add Seed
             </Button>
           </div>
-          {!!state.files.length && (
-            <div className="flex-col">
-              {state.files.map((v, i) => (
+
+          <div className="flex flex-center">
+            {!!state.up && (
+              <Button
+                color="primary"
+                variant="outlined"
+                onClick={handleDown}
+              >
+                Down
+              </Button>
+            )}
+          </div>
+          <div className="flex-col gap-4">
+            {state.torrents.map((t, ti) => (<>
+              <div className="grid grid-cols-2 gap-x-4" key={ti}>
+                <div className="text-right">seed: </div>
+                <div className="truncate max-w-[200px]">{t.magnet}</div>
+                <div className="text-right">uploaded: </div>
+                <div>{t.uploaded}</div>
+                <div className="text-right">downloaded: </div>
+                <div>{t.downloaded}</div>
+                <div className="text-right">speed: </div>
+                <div>{t.speed}</div>
+                <div className="text-right">peers: </div>
+                <div>{t.peers}</div>
+                <div className="text-right">runningTime: </div>
+                <div>{t.runningTime}</div>
+              </div>
+              {t.files.map((v, i) => (
                 <Button
                   className="normal-case"
                   variant="outlined"
@@ -79,8 +117,8 @@ export const MainView = observer(() => {
                   {v}
                 </Button>
               ))}
-            </div>
-          )}
+            </>))}
+          </div>
         </div>
       )}
 
@@ -96,9 +134,12 @@ export const MainView = observer(() => {
             <source src={state.playing} type="video/mp4" />
           </video>
           <Button
-            className="absolute top-0 left-0 z-10"
+            className="absolute top-2 left-2 z-10"
+            variant="contained"
+            color="primary"
             onClick={action(() => { state.playing = ''; })}
           >
+            <ChevronLeft />
             Back
           </Button>
         </div>

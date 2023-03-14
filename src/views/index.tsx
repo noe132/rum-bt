@@ -6,7 +6,7 @@ import { TitleBar } from './TitleBar';
 import { MainView } from './Main';
 
 export const App = () => {
-  React.useEffect(() => rumTorrentIPC.initTorrentIPC(), []);
+  React.useEffect(() => rumTorrentIPC.init(), []);
   React.useEffect(() => loadInspect(), []);
 
   return (

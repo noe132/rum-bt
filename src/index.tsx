@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { configure } from 'mobx';
 import { App } from './views';
 import Log from 'utils/log';
+import './styles/tailwind-base.sass';
 import './styles/tailwind.sass';
 import './styles/App.global.scss';
 

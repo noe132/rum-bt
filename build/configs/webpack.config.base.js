@@ -98,13 +98,30 @@ config.module.rule('css')
 
 config.module.rule('sass')
   .test(/\.(sass|scss)$/)
-  // comment out because it breaks tailwindcss hot reload
-  // .use('thread-loader')
-  // .loader('thread-loader')
-  // .options({ workers })
-  // .end()
   .use('style-loader')
   .loader('style-loader')
+  .end()
+  .use('css-loader')
+  .loader('css-loader')
+  .end()
+  .use('postcss-loader')
+  .loader('postcss-loader')
+  .end()
+  .use('sass-loader')
+  .loader('sass-loader')
+  .end()
+  .exclude.add(/tailwind-base\.sass/);
+
+config.module.rule('tailwind-base')
+  .test(/tailwind-base\.sass$/)
+  .use('style-loader')
+  .loader('style-loader')
+  .options({
+    // eslint-disable-next-line
+    insert: function (e) {
+      document.head.insertBefore(e, document.head.firstElementChild);
+    },
+  })
   .end()
   .use('css-loader')
   .loader('css-loader')
